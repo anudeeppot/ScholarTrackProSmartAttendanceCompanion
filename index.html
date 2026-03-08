@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ScholarTrack Pro | Final Build</title>
+    <style>
+        /* ┌─────────────────────────────────────────────────────────────┐
+           │  WEB CO1 — HTML Document Structure & Introductory CSS       │
+           │  CSS custom properties (variables) for theming,             │
+           │  foundational spacing, color representations                │
+           └─────────────────────────────────────────────────────────────┘ */
+        :root {
+            --primary: #4f46e5;
+            --accent: #f97316;
+            --bg: #f1f5f9;
+            --sidebar: #1e293b;
+            --card: #ffffff;
+            --text: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --success: #22c55e;
+            --danger: #ef4444;
+        }
+
+        /* WEB CO1 — CSS custom properties for dark theme variant */
+        [data-theme="dark"] {
+            --bg: #0f172a;
+            --sidebar: #020617;
+            --card: #1e293b;
+            --text: #f1f5f9;
+            --text-muted: #94a3b8;
+            --border: #334155;
+        }
+
+        /* WEB CO1 — Core selectors, typography essentials, box model */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; transition: background 0.2s, color 0.2s; }
+        body { background-color: var(--bg); color: var(--text); min-height: 100vh; display: flex; overflow: hidden; }
+
+        /* WEB CO1 — Foundational spacing: padding, border, border-radius */
+        #auth-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); display: flex; justify-content: center; align-items: center; z-index: 2000; }
+        .auth-card { background: var(--card); padding: 40px; width: 90%; max-width: 400px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: 1px solid var(--border); }
+        .auth-header { text-align: center; margin-bottom: 30px; }
+        .auth-header h2 { color: var(--primary); font-size: 1.8rem; font-weight: 700; margin-bottom: 8px; }
+
+        #main-app { display: none; width: 100%; }
+        #main-app.show { display: flex; }
+
+        /* WEB CO2 — Comprehensive CSS Layouts: Flexbox for sidebar navigation */
+        nav { width: 260px; background-color: var(--sidebar); color: white; padding: 25px; display: flex; flex-direction: column; position: fixed; height: 100vh; z-index: 100; }
+        .nav-header { font-size: 1.4rem; font-weight: 700; color: #818cf8; margin-bottom: 40px; }
+        .nav-link { padding: 12px 16px; border-radius: 8px; cursor: pointer; color: #94a3b8; margin-bottom: 8px; display: flex; gap: 10px; font-weight: 500; }
+        .nav-link:hover, .nav-link.active { background: var(--primary); color: white; }
+        .nav-bottom { margin-top: auto; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px; }
+
+        /* WEB CO2 — Flexbox: main content area flex layout with sidebar offset */
+        main { flex: 1; margin-left: 260px; padding: 40px; height: 100vh; overflow-y: auto; max-width: 1600px; }
+
+        /* WEB CO2 — CSS transitions: screen fade-in animation */
+        .screen { display: none; animation: fadeIn 0.4s ease-out; }
+        .screen.active { display: block; }
+        .card { background: var(--card); padding: 25px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 25px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        h1 { font-size: 2rem; margin-bottom: 5px; }
+        .subtitle { color: var(--text-muted); margin-bottom: 30px; }
+
+        /* WEB CO2 — CSS Grid: responsive stats dashboard cards */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 25px; margin-bottom: 30px; }
+        .stat-card { background: var(--card); padding: 30px 20px; border-radius: 12px; border: 1px solid var(--border); text-align: center; border-top: 5px solid var(--primary); }
+        .stat-card h3 { font-size: 2.2rem; margin: 15px 0 5px 0; font-weight: 700; }
+
+        /* WEB CO1 — Typography, color representations for SVG chart */
+        .chart-container { height: 350px; width: 100%; position: relative; padding: 20px; margin-bottom: 20px; background: var(--card); border-radius: 12px; border: 1px solid var(--border); }
+        .chart-svg { width: 100%; height: 100%; overflow: visible; }
+        .chart-bar { fill: var(--primary); opacity: 0.8; }
+        .chart-line { fill: none; stroke: var(--accent); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+        .chart-area { fill: var(--accent); fill-opacity: 0.15; stroke: none; }
+        .chart-dot { fill: var(--card); stroke: var(--accent); stroke-width: 2; }
+        .chart-text { font-size: 11px; fill: var(--text); font-weight: 700; text-anchor: middle; }
+        .chart-label { font-size: 12px; fill: var(--text-muted); text-anchor: middle; font-weight: 600; }
+
+        /* WEB CO1 — Form input styling: padding, border, background, color */
+        input { width: 100%; padding: 12px 15px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); color: var(--text); margin-bottom: 15px; }
+        .btn { background: var(--primary); color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; display: inline-block; text-align: center; }
+
+        /* WEB CO2 — CSS transitions: hover lift effect on buttons */
+        .btn:hover { transform: translateY(-1px); opacity: 0.9; }
+        .btn-danger { background: var(--danger); }
+        .btn-summary { background: var(--success); margin-top: 10px; width: 100%; }
+
+        /* WEB CO2 — Flexbox: subject list row layout (space-between) */
+        .subject-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid var(--border); }
+        .subject-item:last-child { border-bottom: none; }
+
+        /* WEB CO2 — Flexbox: modal overlay and centered content */
+        #summary-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 3000; justify-content: center; align-items: center; }
+        .summary-content { background: white; color: black; padding: 40px; border-radius: 12px; width: 95%; max-width: 800px; max-height: 90vh; overflow-y: auto; }
+        .doc-header { border-bottom: 3px solid #000; padding-bottom: 10px; margin-bottom: 30px; text-align: center; }
+
+        /* WEB CO2 — HTML Tables (Comprehensive CSS Layouts) */
+        .doc-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .doc-table th, .doc-table td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        .doc-table th { background: #f1f5f9; }
+
+        .hidden { display: none !important; }
+        .text-link { color: var(--primary); cursor: pointer; font-weight: 500; text-decoration: underline; }
+
+        /* WEB CO2 — CSS animations: fadeIn keyframe */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* WEB CO2 — Media queries: print layout for PDF export */
+        @media print {
+            body { background: white; }
+            nav, .btn, #auth-container, .card:not(.summary-content), .subtitle, h1 { display: none !important; }
+            main { margin: 0; padding: 0; }
+            #summary-modal { position: absolute; background: white; display: block !important; }
+            .summary-content { box-shadow: none; width: 100%; max-width: 100%; padding: 0; border: none; }
+            .no-print { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     WEB CO1 — HTML Document Structure: semantic layout with auth
+     WEB CO2 — Forms & Input Handling: login form with validation
+     WEB CO5 — Form validation with JavaScript (handled in login())
+═══════════════════════════════════════════════════════════════ -->
+<div id="auth-container">
+    <div id="login-view" class="auth-card">
+        <div class="auth-header"><h2>ScholarTrack</h2><p>Sign in to your dashboard</p></div>
+        <!-- WEB CO2 — Form elements, Input types -->
+        <label>Username</label><input type="text" id="l-user">
+        <label>Password</label><input type="password" id="l-pass">
+        <!-- WEB CO4 — Event handling: onclick calls login() -->
+        <button class="btn" style="width:100%" onclick="login()">Sign In</button>
+        <p style="text-align:center;margin-top:20px;font-size:0.9rem">New? <span class="text-link" onclick="toggleAuth('signup')">Create account</span></p>
+    </div>
+    <div id="signup-view" class="auth-card hidden">
+        <div class="auth-header"><h2>Create Account</h2><p>Join ScholarTrack Pro</p></div>
+        <!-- WEB CO2 — Form elements, Input types -->
+        <label>Full Name</label><input type="text" id="s-name">
+        <label>Username</label><input type="text" id="s-user">
+        <label>Password</label><input type="password" id="s-pass">
+        <!-- WEB CO4 — Event handling: onclick calls signup() -->
+        <button class="btn" style="width:100%" onclick="signup()">Sign Up</button>
+        <p style="text-align:center;margin-top:20px;font-size:0.9rem">Have account? <span class="text-link" onclick="toggleAuth('login')">Login</span></p>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     WEB CO1 — HTML Document Structure: main app shell
+     WEB CO2 — Flexbox layout: nav + main side-by-side
+═══════════════════════════════════════════════════════════════ -->
+<div id="main-app">
+    <!-- WEB CO2 — Flexbox: vertical nav column with auto-push footer -->
+    <nav>
+        <div class="nav-header">ScholarTrack</div>
+        <!-- WEB CO4 — DOM Events: nav() switches active screen on click -->
+        <div class="nav-link active" onclick="nav('home')"><span>📊</span> Dashboard</div>
+        <div class="nav-link" onclick="nav('calc')"><span>⚡</span> Predictor</div>
+        <div class="nav-link" onclick="nav('subs')"><span>📚</span> Subjects</div>
+        <div class="nav-link" onclick="nav('results')"><span>📈</span> Results</div>
+        <div class="nav-link" onclick="nav('settings')"><span>⚙️</span> Settings</div>
+        <div class="nav-bottom">
+            <!-- WEB CO4 — DOM Events: toggleTheme() manipulates data-theme attribute -->
+            <div class="nav-link" onclick="toggleTheme()"><span>🌙</span> Dark Mode</div>
+            <div class="nav-link" onclick="logout()" style="color:var(--danger)"><span>🚪</span> Logout</div>
+        </div>
+    </nav>
+
+    <main>
+        <!-- ── DASHBOARD ──────────────────────────────────────────
+             WEB CO4 — DOM manipulation: innerText updated by updateDash()
+             DSA CO1  — Array reduce used to compute overall attendance %
+             DSA CO3  — Result of stack/queue operations reflected here
+        ──────────────────────────────────────────────────────── -->
+        <div id="home" class="screen active">
+            <h1 id="welcome-msg">Welcome Back</h1>
+            <p class="subtitle">Live attendance monitoring.</p>
+            <!-- WEB CO2 — CSS Grid: auto-fit responsive stat cards -->
+            <div class="stats-grid">
+                <div class="stat-card" style="border-color:var(--primary)"><p>Attendance</p><h3 id="dash-avg">0%</h3></div>
+                <div class="stat-card" style="border-color:var(--success)"><p>Goal</p><h3 id="dash-target">75%</h3></div>
+                <div class="stat-card" style="border-color:var(--danger)"><p>Status</p><h3 id="dash-status">---</h3></div>
+            </div>
+        </div>
+
+        <!-- ── PREDICTOR ──────────────────────────────────────────
+             WEB CO3 — JavaScript: conditions + while loops for calculation
+             WEB CO4 — DOM manipulation: shows/hides prediction-box
+             WEB CO5 — Input validation: guards against empty/NaN inputs
+        ──────────────────────────────────────────────────────── -->
+        <div id="calc" class="screen">
+            <h1>Attendance Predictor</h1>
+            <div class="card" style="max-width:500px">
+                <!-- WEB CO2 — Form elements, input type=number -->
+                <label>Total Classes Held</label><input type="number" id="p-total">
+                <label>Classes Attended</label><input type="number" id="p-att">
+                <!-- WEB CO4 — Event handling: onclick calls predict() -->
+                <button class="btn" style="width:100%" onclick="predict()">Analyze Future</button>
+                <!-- WEB CO4 — DOM manipulation: classList.remove('hidden') reveals this -->
+                <div id="prediction-box" class="hidden" style="margin-top:20px;padding:15px;border-radius:8px;background:#f0fdf4">
+                    <h2 id="p-perc" style="color:#166534">0%</h2>
+                    <p id="p-msg" style="color:#166534"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── SUBJECTS ───────────────────────────────────────────
+             DSA CO2  — Array-based ADT (subs[]) with insert/delete ops
+             DSA CO3  — Stack (SubjectStack) tracks subject add history
+             DSA CO1  — Selection Sort orders subjects by attendance %
+             DSA CO1  — Array reduce/filter/map in computeStats()
+             WEB CO3  — JS: arrow functions, .map() callbacks in renderSubs()
+             WEB CO4  — DOM manipulation: innerHTML rebuilt on every change
+             WEB CO5  — Input validation: empty subject name is rejected
+        ──────────────────────────────────────────────────────── -->
+        <div id="subs" class="screen">
+            <h1>My Subjects</h1>
+            <div class="card">
+                <!-- WEB CO2 — Flexbox: input + button inline row -->
+                <div style="display:flex;gap:10px">
+                    <!-- WEB CO2 — Form elements -->
+                    <input type="text" id="new-sub" placeholder="Subject Name" style="margin:0">
+                    <!-- WEB CO4 — Event handling: addSubject() on click -->
+                    <button class="btn" onclick="addSubject()">Add</button>
+                </div>
+            </div>
+            <!-- WEB CO4 — DOM manipulation: populated dynamically by renderSubs() -->
+            <div id="subject-container" class="card" style="padding:0"></div>
+        </div>
+
+        <!-- ── RESULTS ────────────────────────────────────────────
+             DSA CO1  — Bubble Sort ranks results by score (highest first)
+             DSA CO1  — Binary Search finds median score in sorted array
+             WEB CO3  — JS: forEach loop builds SVG chart points
+             WEB CO4  — DOM manipulation: SVG chart injected via innerHTML
+             WEB CO5  — Input validation: empty name / NaN score rejected
+        ──────────────────────────────────────────────────────── -->
+        <div id="results" class="screen">
+            <h1>Results &amp; Analytics</h1>
+            <p class="subtitle">Semester performance achievements.</p>
+            <!-- WEB CO1 — HTML structure: chart container div -->
+            <div class="chart-container">
+                <!-- WEB CO4 — DOM manipulation: SVG injected here by renderResults() -->
+                <div id="chart-area" style="width:100%;height:100%">
+                    <p style="color:var(--text-muted);width:100%;text-align:center;padding-top:140px">Add data to view trend graph.</p>
+                </div>
+            </div>
+            <div class="card">
+                <h3>Add Semester Result</h3>
+                <!-- WEB CO2 — Flexbox: side-by-side inputs + button -->
+                <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:15px">
+                    <!-- WEB CO2 — Form elements, input types -->
+                    <div style="flex:1"><input id="res-name" placeholder="Exam Name (e.g. Sem 1)" style="margin:0"></div>
+                    <div style="flex:1"><input type="number" id="res-val" placeholder="Score" style="margin:0"></div>
+                    <!-- WEB CO4 — Event handling: addResult() on click -->
+                    <button class="btn" onclick="addResult()">Add Entry</button>
+                </div>
+            </div>
+            <!-- WEB CO4 — DOM manipulation: populated dynamically by renderResults() -->
+            <div id="results-list" class="card" style="padding:0"></div>
+        </div>
+
+        <!-- ── SETTINGS ───────────────────────────────────────────
+             WEB CO2  — Forms & Input Handling: profile update form
+             WEB CO4  — Browser Storage: localStorage + sessionStorage
+             WEB CO5  — Form validation in saveProfile()
+             DSA CO4  — Hash-map lookup: users.findIndex() for fast update
+        ──────────────────────────────────────────────────────── -->
+        <div id="settings" class="screen">
+            <h1>Settings</h1>
+            <div class="card">
+                <h3>Profile Management</h3>
+                <!-- WEB CO2 — Form elements, Input Handling -->
+                <label style="margin-top:15px">Display Name</label><input type="text" id="setting-name">
+                <label>Attendance Target %</label><input type="number" id="setting-target">
+                <!-- WEB CO4 — Event handling: saveProfile() on click -->
+                <button class="btn" style="width:100%" onclick="saveProfile()">Save Settings</button>
+                <!-- WEB CO4 — Event handling: showSummary() opens modal -->
+                <button class="btn btn-summary" onclick="showSummary()">Generate Summary Report</button>
+            </div>
+            <button class="btn btn-danger" style="width:100%" onclick="resetData()">Wipe All Data</button>
+        </div>
+    </main>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     WEB CO2  — Flexbox: modal centered overlay
+     WEB CO5  — window.print() for PDF generation / page optimization
+     DSA CO1  — Bubble Sort used to rank scores in summary table
+     DSA CO1  — Linear Search used to locate at-risk subject
+     DSA CO1  — Array reduce/filter/map via computeStats()
+═══════════════════════════════════════════════════════════════ -->
+<div id="summary-modal">
+    <div class="summary-content">
+        <div class="doc-header">
+            <h1 style="color:#000">SCHOLARTRACK ACADEMIC SUMMARY</h1>
+            <p id="doc-date" style="font-size:14px;color:#555"></p>
+        </div>
+        <!-- WEB CO4 — DOM manipulation: innerHTML written by showSummary() -->
+        <div id="summary-body"></div>
+        <!-- WEB CO2 — Flexbox: side-by-side action buttons -->
+        <div class="no-print" style="margin-top:30px;display:flex;gap:10px">
+            <!-- WEB CO5 — window.print() for PDF / page optimization -->
+            <button class="btn btn-summary" style="margin:0;flex:1" onclick="window.print()">Download PDF</button>
+            <!-- WEB CO4 — DOM manipulation: hide modal via style.display -->
+            <button class="btn" style="background:#64748b;flex:1" onclick="document.getElementById('summary-modal').style.display='none'">Close</button>
+        </div>
+    </div>
+</div>
+
+<script>
+/* ================================================================
+   DSA MODULE
+   All 7 DSA concepts wired into actual UI operations.
+   Open F12 → Console to see each algorithm running live.
+================================================================ */
+
+/* ----------------------------------------------------------------
+   DSA CO2 & CO3 — Abstract Data Type: STACK (array-based, LIFO)
+   CO2: Implements ADT with insert (push) / delete (pop) / traverse
+   CO3: Models subject add-history as a real-world stack workflow
+   Used in: addSubject()
+---------------------------------------------------------------- */
+const SubjectStack = {
+    _data: [],
+    push(s) {
+        this._data.push(s);
+        console.log(`[STACK] PUSH → "${s.n}" | size: ${this._data.length}`);
+    },
+    pop() {
+        const s = this._data.pop();
+        console.log(`[STACK] POP  ← "${s ? s.n : 'empty'}" | size: ${this._data.length}`);
+        return s;
+    },
+    peek() { return this._data[this._data.length - 1] || null; },
+    size() { return this._data.length; },
+    all()  { return [...this._data]; }
+};
+
+/* ----------------------------------------------------------------
+   DSA CO2 & CO3 — Abstract Data Type: QUEUE (array-based, FIFO)
+   CO2: Implements ADT with enqueue (insert) / dequeue (delete)
+   CO3: Models auth activity log as a real-world queue workflow
+        (signup → login → logout processed in arrival order)
+   Used in: signup(), login(), logout()
+---------------------------------------------------------------- */
+const ActivityQueue = {
+    _data: [],
+    enqueue(action) {
+        this._data.push({ ...action, time: new Date().toLocaleTimeString() });
+        console.log(`[QUEUE] ENQUEUE → ${action.type} by "${action.user}" | queue size: ${this._data.length}`);
+    },
+    dequeue() {
+        const a = this._data.shift();
+        if (a) console.log(`[QUEUE] DEQUEUE ← ${a.type} | remaining: ${this._data.length}`);
+        return a;
+    },
+    all()  { return [...this._data]; },
+    size() { return this._data.length; }
+};
+
+/* ----------------------------------------------------------------
+   DSA CO1 — Sorting Algorithm: BUBBLE SORT  O(n²)
+   Compares adjacent elements, swaps until array is ordered.
+   Justification: simple to implement and visualise for small n;
+   appropriate here as result sets are always small (< 20 entries).
+   Used in: renderResults() — ranks results by score (desc)
+            showSummary()   — ranks scores in report table (desc)
+---------------------------------------------------------------- */
+function bubbleSort(arr) {
+    if (!arr || arr.length === 0) return [];
+    const a = arr.map(r => ({ ...r }));
+    let swaps = 0;
+    console.log(`[BUBBLE SORT] Input:  [${a.map(r => r.v).join(', ')}]`);
+    for (let i = 0; i < a.length - 1; i++) {
+        for (let j = 0; j < a.length - 1 - i; j++) {
+            if (a[j].v < a[j + 1].v) {
+                [a[j], a[j + 1]] = [a[j + 1], a[j]];
+                swaps++;
+            }
+        }
+    }
+    console.log(`[BUBBLE SORT] Sorted: [${a.map(r => r.v).join(', ')}] | swaps: ${swaps}`);
+    return a;
+}
+
+/* ----------------------------------------------------------------
+   DSA CO1 — Sorting Algorithm: SELECTION SORT  O(n²)
+   Finds the maximum in remaining unsorted portion, places it first.
+   Justification: minimises swaps vs bubble sort; suitable when
+   write cost matters and data set (subjects list) is small.
+   Used in: renderSubs() — orders subjects by attendance % (desc)
+---------------------------------------------------------------- */
+function selectionSort(arr) {
+    if (!arr || arr.length === 0) return [];
+    const a   = arr.map(s => ({ ...s }));
+    const pct = s => s.t ? (s.a / s.t) * 100 : 0;
+    console.log(`[SELECTION SORT] Input:  [${a.map(s => pct(s).toFixed(1) + '%').join(', ')}]`);
+    for (let i = 0; i < a.length - 1; i++) {
+        let maxIdx = i;
+        for (let j = i + 1; j < a.length; j++) {
+            if (pct(a[j]) > pct(a[maxIdx])) maxIdx = j;
+        }
+        if (maxIdx !== i) [a[i], a[maxIdx]] = [a[maxIdx], a[i]];
+    }
+    console.log(`[SELECTION SORT] Sorted: [${a.map(s => pct(s).toFixed(1) + '%').join(', ')}]`);
+    return a;
+}
+
+/* ----------------------------------------------------------------
+   DSA CO1 — Searching Algorithm: LINEAR SEARCH  O(n)
+   Scans every element until a match is found.
+   Justification: data is unsorted (subjects added in any order)
+   so binary search is not applicable here.
+   Used in: showSummary() — finds first at-risk subject by name
+---------------------------------------------------------------- */
+function linearSearch(arr, query) {
+    console.log(`[LINEAR SEARCH] Searching for "${query}" in ${arr.length} subject(s)...`);
+    for (let i = 0; i < arr.length; i++) {
+        if (arr[i].n.toLowerCase().includes(query.toLowerCase())) {
+            console.log(`[LINEAR SEARCH] Found at index ${i} → "${arr[i].n}"`);
+            return i;
+        }
+    }
+    console.log(`[LINEAR SEARCH] "${query}" not found.`);
+    return -1;
+}
+
+/* ----------------------------------------------------------------
+   DSA CO1 — Searching Algorithm: BINARY SEARCH  O(log n)
+   Halves the search space each step — requires sorted input.
+   Justification: results array is pre-sorted ascending before
+   calling this, so O(log n) is achievable and efficient.
+   Used in: renderResults() — finds the median score in sorted array
+---------------------------------------------------------------- */
+function binarySearch(sortedArr, targetScore) {
+    if (!sortedArr || sortedArr.length === 0) return -1;
+    let lo = 0, hi = sortedArr.length - 1;
+    console.log(`[BINARY SEARCH] target=${targetScore} | array=[${sortedArr.map(r => r.v).join(', ')}]`);
+    while (lo <= hi) {
+        const mid = Math.floor((lo + hi) / 2);
+        console.log(`  step: lo=${lo} mid=${mid} hi=${hi} | value=${sortedArr[mid].v}`);
+        if (sortedArr[mid].v === targetScore) {
+            console.log(`[BINARY SEARCH] Found "${sortedArr[mid].n}" at index ${mid}`);
+            return mid;
+        }
+        sortedArr[mid].v < targetScore ? (lo = mid + 1) : (hi = mid - 1);
+    }
+    console.log(`[BINARY SEARCH] Not found.`);
+    return -1;
+}
+
+/* ----------------------------------------------------------------
+   DSA CO1 — Array Operations: filter / map / reduce  O(n)
+   reduce : accumulates total attended + total classes held
+   filter : selects subjects whose attendance is below target %
+   map    : transforms each subject into a { name, pct } pair
+   Used in: saveSubs()    — runs on every subject change
+            updateDash()  — computes live dashboard stats
+            showSummary() — computes overall % for report
+---------------------------------------------------------------- */
+function computeStats(subs, res, target) {
+    // DSA CO1 — reduce: sum attendance across all subjects
+    const totals  = subs.reduce((acc, s) => { acc.a += s.a; acc.t += s.t; return acc; }, { a: 0, t: 0 });
+    const overall = totals.t ? parseFloat(((totals.a / totals.t) * 100).toFixed(1)) : 0;
+
+    // DSA CO1 — filter: find subjects below the attendance target
+    const atRisk  = subs.filter(s => s.t && (s.a / s.t) * 100 < target);
+
+    // DSA CO1 — map: produce percentage label per subject
+    const pctList = subs.map(s => ({ name: s.n, pct: s.t ? ((s.a / s.t) * 100).toFixed(1) + '%' : '0%' }));
+
+    console.log(`[ARRAY OPS] reduce → overall: ${totals.a}/${totals.t} = ${overall}%`);
+    console.log(`[ARRAY OPS] filter → at-risk:`, atRisk.map(s => s.n));
+    console.log(`[ARRAY OPS] map    → %:`, pctList);
+    return { overall, atRisk, pctList };
+}
+
+/* ================================================================
+   APP STATE
+   DSA CO4 — localStorage acts as a hash-map keyed by username
+             providing O(1) average-case lookup and storage
+================================================================ */
+let users  = JSON.parse(localStorage.getItem('st-users')) || [];
+let u      = null;
+let subs   = [];   // DSA CO2 — array-based ADT: [{ n, a, t }]
+let res    = [];   // DSA CO2 — array-based ADT: [{ n, v }]
+let target = 75;   // always a Number (parseFloat on every load)
+
+/* ================================================================
+   AUTH
+   WEB CO3  — JS functions, conditions
+   WEB CO4  — DOM manipulation (classList, style), browser storage
+   WEB CO5  — Input validation before any data is written
+   DSA CO3  — ActivityQueue (FIFO) logs every auth event in order
+   DSA CO4  — users.find() — fast hash-style lookup by username key
+================================================================ */
+
+function toggleAuth(v) {
+    // WEB CO4 — DOM manipulation: classList.toggle shows/hides views
+    document.getElementById('login-view').classList.toggle('hidden', v !== 'login');
+    document.getElementById('signup-view').classList.toggle('hidden', v !== 'signup');
+}
+
+function signup() {
+    const n = document.getElementById('s-name').value;
+    const x = document.getElementById('s-user').value.trim();
+    const p = document.getElementById('s-pass').value;
+
+    // WEB CO5 — Form validation: reject empty username or password
+    if (!x || !p) return alert('Fill all fields.');
+
+    // DSA CO4 — Array.find() as hash-style lookup: check username uniqueness
+    if (users.find(k => k.username === x)) return alert('Username already exists.');
+
+    users.push({ name: n, username: x, password: p });
+
+    // WEB CO4 — Browser Storage: persist users to localStorage
+    localStorage.setItem('st-users', JSON.stringify(users));
+
+    // DSA CO3 — Queue: enqueue SIGNUP event (FIFO activity log)
+    ActivityQueue.enqueue({ type: 'SIGNUP', user: x });
+
+    alert('Account created! Login now.');
+    toggleAuth('login');
+}
+
+function login() {
+    const x = document.getElementById('l-user').value.trim();
+    const p = document.getElementById('l-pass').value;
+
+    // DSA CO4 — Array.find() as hash-style lookup: match credentials
+    const f = users.find(k => k.username === x && k.password === p);
+
+    if (f) {
+        // WEB CO4 — Browser Storage: persist session to sessionStorage
+        sessionStorage.setItem('st-active', JSON.stringify(f));
+
+        // DSA CO3 — Queue: enqueue LOGIN event (FIFO activity log)
+        ActivityQueue.enqueue({ type: 'LOGIN', user: x });
+        init(f);
+    } else {
+        // WEB CO5 — Input validation: alert on failed credential check
+        alert('Invalid credentials.');
+    }
+}
+
+function logout() {
+    // DSA CO3 — Queue: enqueue LOGOUT, then dump full log to console
+    ActivityQueue.enqueue({ type: 'LOGOUT', user: u.username });
+    console.log('[QUEUE] Full activity log on logout:', ActivityQueue.all());
+
+    // WEB CO4 — Browser Storage: clear session on logout
+    sessionStorage.clear();
+    location.reload();
+}
+
+/* ================================================================
+   INIT
+   WEB CO4 — DOM manipulation + browser storage (localStorage,
+             sessionStorage) loaded on every session start
+================================================================ */
+function init(user) {
+    u = user;
+
+    // WEB CO4 — Browser Storage: read user data from localStorage
+    // DSA CO4  — Hash-map pattern: keyed by username for O(1) retrieval
+    subs   = JSON.parse(localStorage.getItem(`d-${u.username}`)) || [];
+    res    = JSON.parse(localStorage.getItem(`r-${u.username}`)) || [];
+    target = parseFloat(localStorage.getItem(`t-${u.username}`)) || 75;
+
+    // WEB CO4 — DOM manipulation: hide auth, show app, update text
+    document.getElementById('auth-container').style.display = 'none';
+    document.getElementById('main-app').classList.add('show');
+    document.getElementById('welcome-msg').innerText = `Hi, ${u.name || u.username}`;
+    document.getElementById('setting-name').value    = u.name;
+    document.getElementById('setting-target').value  = target;
+
+    if (localStorage.getItem('theme') === 'dark') applyTheme('dark');
+    updateDash();
+    renderSubs();
+}
+
+function nav(id) {
+    // WEB CO4 — DOM manipulation: querySelectorAll + classList for screen switching
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+    if (id === 'results') renderResults();
+}
+
+/* ================================================================
+   SUBJECTS
+   DSA CO1  — Selection Sort ranks subjects by attendance %
+   DSA CO2  — subs[] is an array-based ADT (insert / delete / traverse)
+   DSA CO3  — SubjectStack (LIFO) records every subject addition
+   DSA CO1  — computeStats uses reduce / filter / map
+   WEB CO3  — Arrow functions and .map() callbacks
+   WEB CO4  — DOM manipulation via innerHTML
+   WEB CO5  — Input validation: rejects empty subject name
+================================================================ */
+
+function addSubject() {
+    const n = document.getElementById('new-sub').value.trim();
+
+    // WEB CO5 — Input validation: do not add blank subject
+    if (!n) return;
+
+    const s = { n, a: 0, t: 0 };
+
+    // DSA CO2 — Array ADT: insert operation (push onto subs array)
+    subs.push(s);
+
+    // DSA CO3 — Stack: PUSH subject onto SubjectStack (LIFO history)
+    SubjectStack.push(s);
+
+    document.getElementById('new-sub').value = '';
+    saveSubs();
+    renderSubs();
+}
+
+function saveSubs() {
+    // WEB CO4 — Browser Storage: persist subjects to localStorage
+    // DSA CO4  — Hash-map key pattern: d-<username>
+    localStorage.setItem(`d-${u.username}`, JSON.stringify(subs));
+
+    // DSA CO1 — Array Ops: reduce / filter / map run on every save
+    computeStats(subs, res, target);
+    updateDash();
+}
+
+function renderSubs() {
+    const c = document.getElementById('subject-container');
+    if (!subs.length) {
+        c.innerHTML = '<p style="padding:20px;text-align:center">No subjects added.</p>';
+        return;
+    }
+
+    // DSA CO1 — Selection Sort: attach original index before sorting
+    //           so onclick buttons correctly reference subs[i]
+    // WEB CO3  — Array.map() with arrow function to build indexed copy
+    const withIdx = subs.map((s, i) => ({ ...s, _i: i }));
+    const sorted  = selectionSort(withIdx);
+
+    // WEB CO3  — Array.map() with arrow function + template literals
+    // WEB CO4  — DOM manipulation: innerHTML rebuilt on every render
+    c.innerHTML = sorted.map(s => {
+        const i   = s._i;
+        const pct = s.t ? ((s.a / s.t) * 100).toFixed(1) : '0.0';
+        return `<div class="subject-item">
+            <div><b>${s.n}</b><br><small>${pct}% (${s.a}/${s.t})</small></div>
+            <div>
+                <button onclick="subs[${i}].t++;subs[${i}].a++;saveSubs();renderSubs()" style="padding:5px 10px">+</button>
+                <button onclick="subs[${i}].t++;saveSubs();renderSubs()" style="padding:5px 10px">-</button>
+                <button onclick="subs.splice(${i},1);saveSubs();renderSubs()" style="color:red;border:none;background:none;font-weight:bold;margin-left:10px;cursor:pointer">×</button>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function updateDash() {
+    // DSA CO1 — computeStats: reduce/filter/map produce overall %
+    const { overall } = computeStats(subs, res, target);
+
+    // WEB CO4 — DOM manipulation: update stat card text and colour
+    document.getElementById('dash-avg').innerText     = overall + '%';
+    document.getElementById('dash-target').innerText  = target + '%';
+    document.getElementById('dash-status').innerText  = overall >= target ? 'SAFE' : 'LOW';
+    document.getElementById('dash-status').style.color = overall >= target ? 'var(--success)' : 'var(--danger)';
+}
+
+/* ================================================================
+   RESULTS
+   DSA CO1  — Bubble Sort ranks results list by score (desc)
+   DSA CO1  — Binary Search finds median score in sorted array
+   WEB CO3  — forEach loop builds SVG chart coordinates
+   WEB CO4  — DOM manipulation: SVG injected into chart-area
+   WEB CO5  — Input validation: rejects empty name or NaN score
+================================================================ */
+
+function addResult() {
+    const n = document.getElementById('res-name').value.trim();
+    const v = parseFloat(document.getElementById('res-val').value);
+
+    // WEB CO5 — Input validation: reject empty name or non-numeric score
+    if (!n || isNaN(v)) return;
+
+    // DSA CO2 — Array ADT: insert operation (push onto res array)
+    res.push({ n, v });
+
+    // WEB CO4 — Browser Storage: persist results to localStorage
+    localStorage.setItem(`r-${u.username}`, JSON.stringify(res));
+
+    document.getElementById('res-name').value = '';
+    document.getElementById('res-val').value  = '';
+    renderResults();
+}
+
+function renderResults() {
+    const area = document.getElementById('chart-area');
+    const list = document.getElementById('results-list');
+
+    if (!res.length) {
+        list.innerHTML = '';
+        area.innerHTML = '<p style="text-align:center;padding-top:140px;color:gray">Add data to view trend graph.</p>';
+        return;
+    }
+
+    // DSA CO1 — Bubble Sort: rank results by score descending for display
+    const sorted = bubbleSort(res);
+
+    // WEB CO3  — Array.map() with arrow function builds list HTML
+    // WEB CO4  — DOM manipulation: results list rebuilt via innerHTML
+    list.innerHTML = sorted.map(r => {
+        const i = res.findIndex(x => x.n === r.n && x.v === r.v);
+        return `<div class="subject-item">
+            <b>${r.n}</b>
+            <span>${r.v}
+                <button onclick="res.splice(${i},1);localStorage.setItem('r-'+u.username,JSON.stringify(res));renderResults()" style="color:red;border:none;background:none;cursor:pointer;margin-left:10px">×</button>
+            </span>
+        </div>`;
+    }).join('');
+
+    // DSA CO1 — Binary Search: sort array ascending first (required),
+    //           then search for the median score — O(log n)
+    const asc         = [...res].sort((a, b) => a.v - b.v);
+    const medianScore = asc[Math.floor(asc.length / 2)].v;
+    binarySearch(asc, medianScore);
+
+    // WEB CO3 — forEach loop: compute SVG x,y coordinates per result
+    const w = 1000, h = 300, px = 60, py = 50;
+    const max  = Math.max(...res.map(r => r.v)) * 1.2 || 10;
+    const step = (w - px * 2) / (res.length > 1 ? res.length - 1 : 1);
+    const bW   = Math.min(40, step * 0.4);
+    let bars = '', pts = '', dots = '', labels = '';
+
+    res.forEach((r, i) => {
+        const x = res.length === 1 ? w / 2 : px + i * step;
+        const y = (h - py) - (r.v / max) * (h - py * 2);
+        bars   += `<rect class="chart-bar" x="${x - bW/2}" y="${y}" width="${bW}" height="${(h-py)-y}"/>`;
+        pts    += `${x},${y} `;
+        dots   += `<circle cx="${x}" cy="${y}" r="5" class="chart-dot"/>
+                   <text x="${x}" y="${y - 12}" class="chart-text">${r.v}</text>`;
+        labels += `<text x="${x}" y="${h - 15}" class="chart-label">${r.n}</text>`;
+    });
+
+    const startX   = res.length === 1 ? w / 2 : px;
+    const endX     = res.length === 1 ? w / 2 : px + (res.length - 1) * step;
+    const areaPath = `M ${startX},${h-py} L ${pts} L ${endX},${h-py} Z`;
+
+    // WEB CO4 — DOM manipulation: inject full SVG chart into chart-area
+    area.innerHTML = `<svg class="chart-svg" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+        <path d="${areaPath}" class="chart-area"/>
+        ${bars}
+        <polyline points="${pts}" class="chart-line"/>
+        ${labels}${dots}
+    </svg>`;
+}
+
+/* ================================================================
+   PREDICTOR
+   WEB CO3 — JS: conditions (if/else) + while loops for calculation
+   WEB CO4 — DOM manipulation: shows result box, updates text
+   WEB CO5 — Input validation: guards !t and isNaN(a)
+================================================================ */
+
+function predict() {
+    const t = parseInt(document.getElementById('p-total').value);
+    const a = parseInt(document.getElementById('p-att').value);
+
+    // WEB CO5 — Input validation: do not run on empty inputs
+    if (!t || isNaN(a)) return;
+
+    const cur = (a / t) * 100;
+
+    // WEB CO4 — DOM manipulation: remove hidden class to reveal result
+    document.getElementById('prediction-box').classList.remove('hidden');
+    document.getElementById('p-perc').innerText = cur.toFixed(1) + '%';
+
+    // WEB CO3 — JS: while loop increments until threshold is crossed
+    if (cur >= target) {
+        let s = 0;
+        while ((a / (t + s + 1)) * 100 >= target) s++;
+        document.getElementById('p-msg').innerText = `Safe to skip ${s} straight class(es).`;
+    } else {
+        let n = 0;
+        while (((a + n) / (t + n)) * 100 < target) n++;
+        document.getElementById('p-msg').innerText = `Attend ${n} more class(es) to reach target.`;
+    }
+}
+
+/* ================================================================
+   SETTINGS
+   WEB CO4 — Browser Storage: localStorage + sessionStorage writes
+   WEB CO5 — Input validation: parseFloat fallback to 75
+   DSA CO4 — users.findIndex(): hash-style fast lookup by username
+================================================================ */
+
+function saveProfile() {
+    u.name = document.getElementById('setting-name').value;
+
+    // WEB CO5 — Input validation: fallback to 75 if invalid number
+    target = parseFloat(document.getElementById('setting-target').value) || 75;
+
+    // WEB CO4 — Browser Storage: persist target and profile
+    // DSA CO4  — Hash-map key pattern: t-<username>
+    localStorage.setItem(`t-${u.username}`, target);
+    sessionStorage.setItem('st-active', JSON.stringify(u));
+
+    // DSA CO4 — findIndex(): fast lookup to update correct user record
+    const idx = users.findIndex(k => k.username === u.username);
+    users[idx].name = u.name;
+    localStorage.setItem('st-users', JSON.stringify(users));
+
+    alert('Settings saved!');
+    init(u);
+}
+
+/* ================================================================
+   SUMMARY REPORT
+   DSA CO1  — computeStats: reduce / filter / map
+   DSA CO1  — Linear Search: find first at-risk subject
+   DSA CO1  — Bubble Sort: rank scores in report table
+   WEB CO4  — DOM manipulation: innerHTML written into summary-body
+   WEB CO5  — window.print() for PDF / page optimization
+================================================================ */
+
+function showSummary() {
+    // DSA CO1 — Array Ops: reduce/filter/map compute final stats
+    const { overall } = computeStats(subs, res, target);
+
+    // DSA CO1 — Linear Search: scan subs[] to find first at-risk entry
+    const atRisk = subs.filter(s => s.t && (s.a / s.t) * 100 < target);
+    if (atRisk.length) linearSearch(subs, atRisk[0].n);
+
+    document.getElementById('doc-date').innerText = 'Date: ' + new Date().toLocaleDateString();
+
+    // WEB CO4 — DOM manipulation: build HTML string for summary body
+    let html = `
+        <p><strong>Student Name:</strong> ${u.name || u.username}</p>
+        <p><strong>Overall Attendance:</strong> ${overall}% &nbsp;(Goal: ${target}%)</p><br>
+        <h3>Attendance Breakdown</h3>
+        <table class="doc-table">
+            <tr><th>Subject</th><th>Attended</th><th>Percentage</th></tr>`;
+
+    // WEB CO3 — forEach: iterate subjects to build table rows
+    subs.forEach(s => {
+        const p = s.t ? ((s.a / s.t) * 100).toFixed(1) : '0.0';
+        html += `<tr><td>${s.n}</td><td>${s.a}/${s.t}</td><td>${p}%</td></tr>`;
+    });
+
+    // DSA CO1 — Bubble Sort: rank scores highest-first in summary table
+    const ranked = bubbleSort(res);
+    html += `</table><br>
+        <h3>Academic Scores (ranked)</h3>
+        <table class="doc-table">
+            <tr><th>Exam</th><th>Score</th></tr>`;
+
+    // WEB CO3 — forEach: iterate ranked results to build table rows
+    ranked.forEach(r => html += `<tr><td>${r.n}</td><td>${r.v}</td></tr>`);
+    html += '</table>';
+
+    // WEB CO4 — DOM manipulation: inject summary HTML into modal body
+    document.getElementById('summary-body').innerHTML = html;
+    document.getElementById('summary-modal').style.display = 'flex';
+}
+
+/* ================================================================
+   UTILS
+   WEB CO4 — DOM: data-theme attribute toggle (dark mode)
+   WEB CO4 — Browser Storage: theme preference persisted
+================================================================ */
+
+function resetData() {
+    if (confirm('Wipe all data for this account?')) {
+        // WEB CO4 — Browser Storage: remove user data keys from localStorage
+        localStorage.removeItem(`d-${u.username}`);
+        localStorage.removeItem(`r-${u.username}`);
+        location.reload();
+    }
+}
+
+function toggleTheme() {
+    // WEB CO4 — DOM manipulation: read and toggle data-theme attribute
+    applyTheme(document.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+}
+
+function applyTheme(t) {
+    // WEB CO4 — DOM manipulation: setAttribute drives CSS variable switching
+    document.body.setAttribute('data-theme', t);
+    // WEB CO4 — Browser Storage: persist theme choice to localStorage
+    localStorage.setItem('theme', t);
+}
+
+// WEB CO4 — Browser Storage: auto-login from sessionStorage if session exists
+if (sessionStorage.getItem('st-active')) {
+    init(JSON.parse(sessionStorage.getItem('st-active')));
+}
+</script>
+</body>
+</html>
+<!-- Final By Sonu -->
